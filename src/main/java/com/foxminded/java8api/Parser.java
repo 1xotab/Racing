@@ -1,15 +1,36 @@
 package com.foxminded.java8api;
 
+
 import java.io.*;
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
+
+import static java.time.temporal.ChronoUnit.*;
 
 public class Parser {
+
+    public HashMap<String, String> getBestTime(String pathToStartLog, String pathToFinishLog) throws IOException {
+
+        HashMap<String, LocalTime> startLog = parse(pathToStartLog);
+        HashMap<String, LocalTime> finishLog = parse(pathToFinishLog);
+
+        HashMap<String, String> bestLaps = new HashMap<>();
+
+        Set<String> teams = startLog.keySet();
+        String result;
+
+        teams.stream().forEach(team -> {
+
+            LocalTime start = startLog.get(team);
+            LocalTime finish = finishLog.get(team);
+            String bestTime = formatter(start, finish);
+            bestLaps.put(team, bestTime);
+
+        });
+
+        return bestLaps;
+    }
 
     public HashMap<String, LocalTime> parse(String pathName) throws IOException {
 
@@ -41,9 +62,35 @@ public class Parser {
             //LocalDate date = LocalDate.parse(dateAndTime,formatter);
 
             result.put(name, time);
-            string=reader.readLine();
+            string = reader.readLine();
         }
         return result;
+    }
+
+    public static String formatter(LocalTime start, LocalTime finish) {
+
+        String ZERO = "0";
+
+        long min = MINUTES.between(start, finish);
+        long sec = SECONDS.between(start, finish) - min * 60;
+        long milliSec = MILLIS.between(start, finish) - min * 60 * 1000 - sec * 1000;
+
+        String secFormat = "";
+        if (sec < 10) {
+            secFormat = ZERO;
+        }
+
+        String milliSecFormat = "";
+        if (milliSec < 100) {
+            milliSecFormat = ZERO;
+
+            if (milliSec < 10) {
+                milliSecFormat = ZERO + ZERO;
+            }
+        }
+
+
+        return min + ":" + secFormat + sec + "." + milliSecFormat + milliSec;
     }
 }
 
