@@ -11,7 +11,7 @@ import static java.time.temporal.ChronoUnit.*;
 public class Parser {
 
 
-    public TreeMap<String, Long> getBestTime(String pathToStartLog, String pathToFinishLog) throws IOException {
+    public SortedMap<String, Long> getBestTime(String pathToStartLog, String pathToFinishLog) throws IOException {
 
         HashMap<String, LocalTime> startLog = parse(pathToStartLog);
         HashMap<String, LocalTime> finishLog = parse(pathToFinishLog);
@@ -20,7 +20,7 @@ public class Parser {
 
         Set<String> teams = startLog.keySet();
 
-        teams.stream().forEach(team -> {
+        teams.forEach(team -> {
 
             LocalTime start = startLog.get(team);
             LocalTime finish = finishLog.get(team);
@@ -29,12 +29,9 @@ public class Parser {
 
             bestLaps.put(team, bestLap);
 
-
         });
 
-        System.out.println(bestLaps);
-
-        return bestLaps;
+        return bestLaps.descendingMap();
     }
 
     public HashMap<String, LocalTime> parse(String pathName) throws IOException {
@@ -57,7 +54,7 @@ public class Parser {
             StringJoiner buffer = new StringJoiner("");
             list.stream().filter(Character::isLetter).forEach(el -> buffer.add(el.toString()));
 
-            String name = buffer.toString();
+           String name = buffer.toString();
             String dateAndTime = string.substring(name.length());
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-LL-dd_HH:mm:ss.SSS");
@@ -81,7 +78,6 @@ public class Parser {
 
         StringJoiner name = new StringJoiner(" ");
         StringJoiner team = new StringJoiner(" ");
-
 
 
         while (statement != null) {
@@ -144,6 +140,25 @@ public class Parser {
 
     }
 
+    public LinkedHashMap<String[], String> prepareInformationForLine(SortedMap<String, Long> bestLaps, String path) {
+
+        LinkedHashMap<String[], String> result = new LinkedHashMap<>();
+
+        bestLaps.entrySet().stream().forEach(key -> {
+
+            try {
+                String[] nameAndTeam = abbreviationParser(path, key.getKey());
+                String time = timeFormatter(key.getValue());
+
+                result.put(nameAndTeam, time);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return result;
+
+    }
 
 }
 
