@@ -6,6 +6,7 @@ import javax.xml.datatype.DatatypeFactory;
 import java.io.IOException;
 import java.text.ParseException;
 
+import java.util.LinkedHashMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -16,19 +17,11 @@ public class Application {
     public static void main(String[] args) throws IOException, ParseException, DatatypeConfigurationException {
 
         Parser parser = new Parser();
+        Formatter formatter = new Formatter();
 
-        SortedMap<String,Long> map =  parser.getBestTime("./src/main/index.txt","./src/main/anotherIndex.txt");
+        LinkedHashMap<String[],String> racersTime = parser.getRacersTime("./src/main/Index.txt","./src/main/anotherIndex.txt","./src/main/abbreviation.txt");
 
-
-//        String[] array = parser.abbreviationParser("./src/main/abbreviation.txt","SVF");
-//
-//        System.out.println(array[0]);
-//        System.out.println(array[1]);
-
-        //parser.prepareInformationForLine(map,"./src/main/abbreviation.txt");
-
-        System.out.println(parser.prepareInformationForLine(map,"./src/main/abbreviation.txt"));
-
+        System.out.println(formatter.tableFormatter(racersTime));
 
     }
 }

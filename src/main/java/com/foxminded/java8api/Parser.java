@@ -5,22 +5,40 @@ import java.io.*;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.*;
 
 public class Parser {
 
+    public LinkedHashMap<String[], String> getRacersTime(String pathToStartLog, String pathToFinishLog, String path) throws IOException {
+        LinkedHashMap<String, Long> bestLaps = getBestTime(pathToStartLog, pathToFinishLog);
+        LinkedHashMap<String[], String> result = new LinkedHashMap<>();
 
-    public SortedMap<String, Long> getBestTime(String pathToStartLog, String pathToFinishLog) throws IOException {
+        bestLaps.entrySet().stream().forEach(key -> {
+            try {
+                String[] nameAndTeam = abbreviationParser(path, key.getKey());
+                String time = timeConverter(key.getValue());
 
-        HashMap<String, LocalTime> startLog = parse(pathToStartLog);
-        HashMap<String, LocalTime> finishLog = parse(pathToFinishLog);
+                result.put(nameAndTeam, time);
 
-        TreeMap<String, Long> bestLaps = new TreeMap<>();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        return result;
 
-        Set<String> teams = startLog.keySet();
+    }
 
-        teams.forEach(team -> {
+    private LinkedHashMap<String, Long> getBestTime(String pathToStartLog, String pathToFinishLog) throws IOException {
+
+        HashMap<String, LocalTime> startLog = timeDataParser(pathToStartLog);
+        HashMap<String, LocalTime> finishLog = timeDataParser(pathToFinishLog);
+
+        LinkedHashMap<String, Long> bestLaps = new LinkedHashMap<>();
+
+
+        startLog.keySet().forEach(team -> {
 
             LocalTime start = startLog.get(team);
             LocalTime finish = finishLog.get(team);
@@ -31,30 +49,32 @@ public class Parser {
 
         });
 
-        return bestLaps.descendingMap();
+        bestLaps.entrySet().stream().sorted(Map.Entry.comparingByValue()).forEach(el -> {
+
+                    bestLaps.remove(el.getKey());
+                    bestLaps.put(el.getKey(), el.getValue());
+
+                });
+
+        return bestLaps;
     }
 
-    public HashMap<String, LocalTime> parse(String pathName) throws IOException {
+    private HashMap<String, LocalTime> timeDataParser(String pathName) throws IOException {
 
         File file = new File(pathName);
         BufferedReader reader = new BufferedReader(new FileReader(file));
-
         HashMap<String, LocalTime> result = new HashMap<>();
 
         String string = reader.readLine();
 
         while (string != null) {
 
-            char[] charsArray = string.toCharArray();
-            List<Character> list = new ArrayList<>();
-            for (Character ch : charsArray) {
-                list.add(ch);
-            }
+            ArrayList<Character> list = string.chars().mapToObj(e -> (char) e).collect(Collectors.toCollection(ArrayList::new));
 
             StringJoiner buffer = new StringJoiner("");
             list.stream().filter(Character::isLetter).forEach(el -> buffer.add(el.toString()));
 
-           String name = buffer.toString();
+            String name = buffer.toString();
             String dateAndTime = string.substring(name.length());
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-LL-dd_HH:mm:ss.SSS");
@@ -68,7 +88,7 @@ public class Parser {
         return result;
     }
 
-    public String[] abbreviationParser(String pathName, String abbreviation) throws IOException {
+    private String[] abbreviationParser(String pathName, String abbreviation) throws IOException {
 
         File file = new File(pathName);
         BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -79,20 +99,19 @@ public class Parser {
         StringJoiner name = new StringJoiner(" ");
         StringJoiner team = new StringJoiner(" ");
 
-
         while (statement != null) {
 
             if (statement.contains(abbreviation)) {
 
-                String[] abbreviationAndDecoding = statement.split("-");
-                String[] decoding = abbreviationAndDecoding[1].split(" ");
+                 String decoding = statement.split("-")[1];
+                 String[] splitDecoding = decoding.split(" ");
 
-                for (int i = 0; i < decoding.length; i++) {
+                for (int i = 0; i < splitDecoding.length; i++) {
 
                     if (i < 2) {
-                        name.add(decoding[i]);
+                        name.add(splitDecoding[i]);
                     } else {
-                        team.add(decoding[i]);
+                        team.add(splitDecoding[i]);
                     }
                 }
                 break;
@@ -105,7 +124,7 @@ public class Parser {
         return nameAndTeam;
     }
 
-    public static String timeFormatter(long time) {
+    private String timeConverter(long time) {
 
         String ZERO = "0";
 
@@ -129,36 +148,6 @@ public class Parser {
         return min + ":" + secFormat + sec + "." + milliSecFormat + milliSec;
     }
 
-    public LinkedHashMap<String, String> mapFormatter(TreeMap<String, Long> bestLaps) {
-
-        LinkedHashMap<String, String> result = new LinkedHashMap<>();
-        Set<String> keySet = bestLaps.keySet();
-
-        keySet.stream().forEach(key -> result.put(key, timeFormatter(bestLaps.get(key))));
-
-        return result;
-
-    }
-
-    public LinkedHashMap<String[], String> prepareInformationForLine(SortedMap<String, Long> bestLaps, String path) {
-
-        LinkedHashMap<String[], String> result = new LinkedHashMap<>();
-
-        bestLaps.entrySet().stream().forEach(key -> {
-
-            try {
-                String[] nameAndTeam = abbreviationParser(path, key.getKey());
-                String time = timeFormatter(key.getValue());
-
-                result.put(nameAndTeam, time);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        return result;
-
-    }
 
 }
 
