@@ -11,14 +11,14 @@ import static java.time.temporal.ChronoUnit.*;
 
 public class Parser {
 
-    public LinkedHashMap<String[], String> getRacersTime(String pathToStartLog, String pathToFinishLog, String path) throws IOException {
+    public LinkedHashMap<ArrayList<String>, String> getRacersTime(String pathToStartLog, String pathToFinishLog, String pathToAbbreviationDecoding) throws IOException {
         LinkedHashMap<String, Long> bestLaps = getBestTime(pathToStartLog, pathToFinishLog);
-        LinkedHashMap<String[], String> result = new LinkedHashMap<>();
+        LinkedHashMap<ArrayList<String>, String> result = new LinkedHashMap<>();
 
-        bestLaps.entrySet().stream().forEach(key -> {
+        bestLaps.forEach((key1, value) -> {
             try {
-                String[] nameAndTeam = abbreviationParser(path, key.getKey());
-                String time = timeConverter(key.getValue());
+                ArrayList<String> nameAndTeam = abbreviationParser(pathToAbbreviationDecoding, key1);
+                String time = timeConverter(value);
 
                 result.put(nameAndTeam, time);
 
@@ -88,11 +88,11 @@ public class Parser {
         return result;
     }
 
-    private String[] abbreviationParser(String pathName, String abbreviation) throws IOException {
+    private ArrayList<String> abbreviationParser(String pathName, String abbreviation) throws IOException {
 
         File file = new File(pathName);
         BufferedReader reader = new BufferedReader(new FileReader(file));
-        String[] nameAndTeam = new String[2];
+        ArrayList<String> nameAndTeam = new ArrayList<>();
 
         String statement = reader.readLine();
 
@@ -118,8 +118,8 @@ public class Parser {
             }
             statement = reader.readLine();
         }
-        nameAndTeam[0] = name.toString();
-        nameAndTeam[1] = team.toString();
+        nameAndTeam.add(name.toString());
+        nameAndTeam.add(team.toString());
 
         return nameAndTeam;
     }

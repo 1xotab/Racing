@@ -1,25 +1,20 @@
 package com.foxminded.java8api;
 
+import org.junit.jupiter.api.Test;
 
-import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.IOException;
-import java.text.ParseException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
+import static org.junit.jupiter.api.Assertions.*;
 
+public class ParserTest {
 
-public class Application {
-    public static void main(String[] args) throws IOException, ParseException, DatatypeConfigurationException {
+    Parser parser = new Parser();
 
-        Parser parser = new Parser();
-//        Formatter formatter = new Formatter();
-//
-//        LinkedHashMap<String[],String> racersTime = parser.getRacersTime("./src/main/Index.txt","./src/main/anotherIndex.txt","./src/main/abbreviation.txt");
-//
-//        System.out.println(formatter.tableFormatter(racersTime));
+    @Test
+    void getRacersTime_shouldReturnSortedTable_whenInputFilesAreCorrected() throws IOException {
 
         LinkedHashMap<ArrayList<String>,String> actual = parser.getRacersTime("./src/textDocuments/Index.txt",
                 "./src/textDocuments/anotherIndex.txt","./src/textDocuments/abbreviation.txt");
@@ -30,10 +25,9 @@ public class Application {
         expected.put(new ArrayList<> (Arrays.asList("Sebastian Vettel", "FERRARI")),"0:00.002");
         expected.put(new ArrayList<> (Arrays.asList("Daniel Ricciardo", "RED BULL RACING TAG HEUER")),"0:00.003");
 
-        System.out.println(actual.equals(expected));
-
+       assertEquals(actual,expected);
 
     }
+
+
 }
-
-
