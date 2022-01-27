@@ -1,7 +1,6 @@
 package com.foxminded.java8api;
 
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Formatter {
@@ -11,16 +10,16 @@ public class Formatter {
     public static final String DOT = ".";
     public static final String TABLE_SEPARATOR = "------------------------------------------";
 
-    public String tableFormatter(LinkedHashMap<String[], String> info) {
+    public String tableFormatter(Map<String, String> info) {
 
-        int[] longestNameAndTeam = getLongestNameAndTeam(info.keySet());
+        int[] longestNameAndTeam = getLongestNameAndTeam(info.keySet(),);
         AtomicInteger counterOfRacers = new AtomicInteger(1);
 
         StringBuilder sb = new StringBuilder();
 
         info.forEach((naming, time) -> {
 
-            if(counterOfRacers.get()==16){
+            if (counterOfRacers.get() == 16) {
                 sb.append(TABLE_SEPARATOR + NEW_LINE);
             }
 
@@ -33,32 +32,21 @@ public class Formatter {
         return sb.toString();
     }
 
-    private int[] getLongestNameAndTeam(Set<String[]> info) {
-        AtomicInteger maxName = new AtomicInteger(1);
-        AtomicInteger maxTeam = new AtomicInteger(1);
+    private int getLongestNameAndTeam(Set<String> lines,int zeroIfName_oneIfTeam) {
 
-        info.forEach(array -> {
+        Optional<Integer> length =  lines.stream().map(el -> {
+            String name = el.split("_")[zeroIfName_oneIfTeam];
+            return name.length();
+        }).max(Integer::compare);
 
-            if (maxName.get() < array[0].length()) {
-                maxName.set(array[0].length());
-            }
-            if (maxTeam.get() < array[1].length()) {
-                maxTeam.set(array[1].length());
-            }
-        });
-
-        int[] maxNameAndTeam = new int[2];
-        maxNameAndTeam[0] = maxName.intValue();
-        maxNameAndTeam[1] = maxTeam.intValue();
-
-        return maxNameAndTeam;
+        return length.orElse(0);
     }
 
-    private String lineFormatter(String[] nameAndTeam, int[] longestNamesAndTeams, String time) {
+    private String lineFormatter(String nameAndTeam, int[] longestNamesAndTeams, String time) {
         int longestName = longestNamesAndTeams[0];
         int longestTeam = longestNamesAndTeams[1];
-        String name = nameAndTeam[0];
-        String team = nameAndTeam[1];
+        String name = nameAndTeam.split("_")[0];
+        String team = nameAndTeam.split("_")[1];
 
         String nameIndent = spaceGen(longestName - name.length());
         String teamIndent = spaceGen(longestTeam - team.length());
